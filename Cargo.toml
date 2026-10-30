@@ -1,0 +1,33 @@
+[package]
+# 机关 (Jiguan) V3.0 原生加速核心
+# 产物: libjiguan.so (cdylib, 供 Android-Guru-Agent 经 System.loadLibrary 加载)
+#       + rlib (供宿主单测 / 其它 Rust 工程复用)
+name = "jiguan"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.75"
+description = "机关 (Jiguan) Rust 原生核心 —— 进程内存读写 / AOB 扫描 / arm64 trampoline / ptrace 硬件断点, 经 JNI 供 Android-Guru-Agent 调用"
+license = "Apache-2.0"
+repository = "https://github.com/Ultra-Guru/jiguan-native"
+homepage = "https://github.com/Ultra-Guru/jiguan-native"
+readme = "README.md"
+keywords = ["android", "jni", "memory", "reverse-engineering", "aarch64"]
+categories = ["os::linux-apis", "api-bindings"]
+exclude = ["/.github", "/docs"]
+
+[lib]
+name = "jiguan"
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+# JNI 绑定 —— 关闭 invocation 特性避免拉入 libloading/java-locator,
+# 交叉编译 Android 时依赖面更小
+jni = { version = "0.21", default-features = false }
+libc = "0.2"
+log = "0.4"
+
+[profile.release]
+# 产出体积优先: .so 随 APK 分发, 每一字节都算数
+lto = true
+strip = true
+codegen-units = 1

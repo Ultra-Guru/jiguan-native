@@ -1,0 +1,2 @@
+# rustfmt 默认风格, 仅显式钉住 edition, 保证 CI `cargo fmt --check` 与本地一致
+edition = "2021"
