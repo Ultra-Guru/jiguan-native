@@ -315,7 +315,7 @@ mod tests {
     #[test]
     fn scan_buffer_respects_wildcards() {
         // ?? 匹配任意字节
-        let hay = [0x10u8, 0x20, 0x30, 0x40, 0x99, 0x20, 0x30, 0x50];
+        let hay = [0x10u8, 0x20, 0xFF, 0x30, 0x20, 0xAA, 0x30, 0x50];
         let pat = vec![Some(0x20), None, Some(0x30)];
         let hits = scan_buffer(&hay, &pat).unwrap();
         assert_eq!(hits, vec![1, 4]);
