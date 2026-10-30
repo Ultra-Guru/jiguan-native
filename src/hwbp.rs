@@ -245,7 +245,7 @@ impl HwBreakpointSession {
                         libc::ptrace(
                             PT_GETSIGINFO,
                             tid,
-                            std::ptr::null_mut(),
+                            std::ptr::null_mut::<libc::c_void>(),
                             &mut si as *mut libc::siginfo_t as *mut libc::c_void,
                         )
                     };

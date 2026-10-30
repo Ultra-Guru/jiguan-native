@@ -297,7 +297,10 @@ fn scan_value_memory(
     let pattern: Vec<Option<u8>> = bytes.into_iter().map(Some).collect();
     let max = max_results.max(0) as usize;
     match scan::scan_memory(mem, &pattern, max) {
-        Ok(addrs) => to_long_array(env, &addrs.iter().map(|&a| a as jlong).collect::<Vec<jlong>>()),
+        Ok(addrs) => to_long_array(
+            env,
+            &addrs.iter().map(|&a| a as jlong).collect::<Vec<jlong>>(),
+        ),
         Err(e) => {
             log::error!("scanValueMemory 扫描失败: {e}");
             std::ptr::null_mut()
@@ -336,7 +339,10 @@ fn scan_memory_common(
     };
     let max = max_results.max(0) as usize;
     match scan::scan_memory(mem, &parsed, max) {
-        Ok(addrs) => to_long_array(env, &addrs.iter().map(|&a| a as jlong).collect::<Vec<jlong>>()),
+        Ok(addrs) => to_long_array(
+            env,
+            &addrs.iter().map(|&a| a as jlong).collect::<Vec<jlong>>(),
+        ),
         Err(e) => {
             log::error!("scanMemory 扫描失败: {e}");
             std::ptr::null_mut()
