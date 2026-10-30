@@ -9,7 +9,7 @@
 
 > **Jiguan (机关) native acceleration core** — the Rust powertrain of the
 > Jiguan V3.0 universal system-level Android agent terminal. The Kotlin host
-> ([Ultra-Guru/Android-Guru-Agent](https://github.com/Ultra-Guru/Android-Guru-Agent))
+> ([Ultra-Guru/jiguan](https://github.com/Ultra-Guru/jiguan))
 > owns graceful shell-based fallbacks; this crate delivers the **fast native
 > path** over JNI: process memory R/W, AOB scanning, arm64 trampoline
 > generation, inline-hook bookkeeping and ptrace-driven hardware breakpoints.
@@ -24,8 +24,8 @@ Kotlin 层稳而不迟缓; 原生通道不可用时, 机关自动降级为 shell
 
 ```text
 ┌───────────────────────────────────────────────────────────────────┐
-│                    Android-Guru-Agent (Kotlin)                    │
-│                  机关终端 V3.0 · Android 智能体宿主                  │
+│                    机关 App (Kotlin, Ultra-Guru/jiguan)           │
+│                  机关终端 V3.0 · 独立 Android 智能体宿主            │
 │                                                                   │
 │   JiguanNative (external fun) ── System.loadLibrary("jiguan")     │
 │        │                                                          │
@@ -183,4 +183,4 @@ if (version != null) {
 
 ## License
 
-Apache-2.0 —— 与 Android-Guru-Agent 宿主同源。
+Apache-2.0 —— 与机关主仓 [Ultra-Guru/jiguan](https://github.com/Ultra-Guru/jiguan) 同源。
