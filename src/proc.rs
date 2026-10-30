@@ -70,7 +70,7 @@ impl MapsRegion {
     /// 供 JNI `scanRegions` 逐行返回给 Kotlin 侧。
     pub fn to_map_line(&self) -> String {
         let mut line = format!(
-            "{:x}-{:x} {} {:x} {} {}",
+            "{:x}-{:x} {} {:08x} {} {}",
             self.start, self.end, self.perms, self.offset, self.dev, self.inode
         );
         if !self.path.is_empty() {
