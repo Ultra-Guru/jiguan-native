@@ -239,8 +239,8 @@ fn vm_readv_full(pid: libc::pid_t, addr: u64, buf: &mut [u8]) -> io::Result<usiz
     let mut done = 0usize;
     while done < buf.len() {
         let local = libc::iovec {
-            // SAFETY: 指向本进程栈/堆上合法切片的剩余部分
-            iov_base: buf.as_mut_ptr().add(done).cast::<libc::c_void>(),
+            // SAFETY: add 在切片范围内 (done < len), 指向剩余部分的合法起始
+            iov_base: unsafe { buf.as_mut_ptr().add(done).cast::<libc::c_void>() },
             iov_len: buf.len() - done,
         };
         let remote = libc::iovec {
@@ -269,8 +269,9 @@ fn vm_writev_full(pid: libc::pid_t, addr: u64, data: &[u8]) -> io::Result<usize>
     let mut done = 0usize;
     while done < data.len() {
         let local = libc::iovec {
-            // SAFETY: 指向本进程合法切片的剩余部分, 只读
-            iov_base: data.as_ptr().add(done).cast::<libc::c_void>(),
+            // SAFETY: add 在切片范围内; 内核对 writev 的 local 侧只读 ——
+            // const→mut 转换不引入别名写 (远端才是写目标)
+            iov_base: unsafe { data.as_ptr().add(done) as *mut libc::c_void },
             iov_len: data.len() - done,
         };
         let remote = libc::iovec {

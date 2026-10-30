@@ -39,9 +39,9 @@ pub const MAX_HW_BREAKPOINTS: usize = 4;
 const NT_HW_BREAKPOINT: usize = 0x402;
 
 // ptrace 请求号 (libc 对 android/aarch64 同样提供, 这里显式钉死防漂移)
-const PT_GETREGSET: libc::c_uint = 0x4204;
-const PT_SETREGSET: libc::c_uint = 0x4205;
-const PT_GETSIGINFO: libc::c_uint = 0x4202;
+const PT_GETREGSET: libc::c_int = 0x4204;
+const PT_SETREGSET: libc::c_int = 0x4205;
+const PT_GETSIGINFO: libc::c_int = 0x4202;
 
 /// SIGTRAP 的 si_code: 命中硬件断点
 const TRAP_HWBKPT: i32 = 4;
@@ -158,16 +158,13 @@ impl HwBreakpointSession {
     pub fn install(&mut self, addr: u64) -> io::Result<BreakpointId> {
         self.assert_attached()?;
         if self.breakpoints.len() >= MAX_HW_BREAKPOINTS {
-            return Err(Error::new(
-                ErrorKind::ResourceExhausted,
-                "断点槽数已用满 (最多 4)",
-            ));
+            return Err(Error::other("断点槽数已用满 (最多 4)"));
         }
         let (regs, slot_count) = read_dbg_regs(self.pid)?;
         let usable = slot_count.min(MAX_HW_BREAKPOINTS);
         let slot = (0..usable)
             .find(|&i| regs.slots[i].is_free())
-            .ok_or_else(|| Error::new(ErrorKind::ResourceExhausted, "内核无空闲断点槽位"))?;
+            .ok_or_else(|| Error::other("内核无空闲断点槽位"))?;
         let ctrl = bcr_execute();
         for tid in list_tids(self.pid)? {
             write_dbg_regs(tid, &regs, slot_count, slot, addr, ctrl)?;
@@ -328,7 +325,7 @@ fn si_addr(si: &libc::siginfo_t) -> u64 {
 }
 
 /// 统一 ptrace 调用: 返回值 < 0 折叠为 io::Error。
-fn ptrace_call(req: libc::c_uint, pid: libc::pid_t, addr: usize, data: usize) -> io::Result<()> {
+fn ptrace_call(req: libc::c_int, pid: libc::pid_t, addr: usize, data: usize) -> io::Result<()> {
     // SAFETY: 参数由调用点保证; addr 携带 NT 编号或 0, data 携带指针或信号
     let rc = unsafe {
         libc::ptrace(
@@ -382,10 +379,9 @@ fn write_dbg_regs(
     ctrl: u32,
 ) -> io::Result<()> {
     if slot >= slot_count {
-        return Err(Error::new(
-            ErrorKind::ResourceExhausted,
-            format!("线程 {tid} 断点槽位不足 ({slot_count})"),
-        ));
+        return Err(Error::other(format!(
+            "线程 {tid} 断点槽位不足 ({slot_count})"
+        )));
     }
     let mut local = *regs;
     local.slots[slot] = HwBpSlot { addr, ctrl, pad: 0 };

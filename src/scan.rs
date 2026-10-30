@@ -291,8 +291,14 @@ mod tests {
         );
         // 孤立 ? / 三个 ? / 奇数长度紧凑串都非法
         assert_eq!(parse_pattern("?"), Err(ScanError::InvalidToken("?".into())));
-        assert_eq!(parse_pattern("???"), Err(ScanError::InvalidToken("???".into())));
-        assert_eq!(parse_pattern("ABC"), Err(ScanError::InvalidToken("ABC".into())));
+        assert_eq!(
+            parse_pattern("???"),
+            Err(ScanError::InvalidToken("???".into()))
+        );
+        assert_eq!(
+            parse_pattern("ABC"),
+            Err(ScanError::InvalidToken("ABC".into()))
+        );
         // 错误信息可读
         let msg = parse_pattern("XYZ").unwrap_err().to_string();
         assert!(msg.contains("XYZ"), "错误信息应包含原文: {msg}");
@@ -348,8 +354,7 @@ mod tests {
         // SAFETY(测试): addr_of_mut! 不创建引用, 仅取静态地址
         let hay_addr = std::ptr::addr_of_mut!(SCAN_HAYSTACK) as usize as u64;
         // 通配符参与, 锁定 16 偏移处的 CA FE ?? ?? BA BE
-        let hits =
-            scan_memory_pattern(&handle, "CA FE ?? ?? BA BE", 8).expect("扫描自身进程");
+        let hits = scan_memory_pattern(&handle, "CA FE ?? ?? BA BE", 8).expect("扫描自身进程");
         let expected = hay_addr + 16;
         assert!(
             hits.contains(&expected),
