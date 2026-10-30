@@ -55,18 +55,37 @@ jobs:
         with:
           targets: aarch64-linux-android
 
-      - uses: android-actions/setup-android@v3
-
-      - name: 安装 NDK 27.0.12077973
-        run: sdkmanager --install "ndk;27.0.12077973"
-
       - uses: Swatinem/rust-cache@v2
         with:
           prefix-key: "android-aarch64"
 
+      # ubuntu-latest 预装 Android SDK + NDK（runner image 规格）—— 动态发现
+      # 最高版本；全部缺席才 sdkmanager 兜底（setup-android 独立动作的
+      # sdkmanager 通道实测抖动，弃用）。
+      - name: 定位 NDK clang 链接器
+        run: |
+          set -euo pipefail
+          SDK="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
+          NDK_DIR=""
+          if [ -d "$SDK/ndk" ]; then
+            LATEST=$(ls -1v "$SDK/ndk" 2>/dev/null | tail -1 || true)
+            if [ -n "$LATEST" ]; then NDK_DIR="$SDK/ndk/$LATEST"; fi
+          fi
+          if [ -z "$NDK_DIR" ] || [ ! -d "$NDK_DIR" ]; then
+            echo "runner 未预装 NDK —— sdkmanager 兜底安装"
+            CT="$SDK/cmdline-tools/latest/bin"
+            [ -x "$CT/sdkmanager" ] || CT="$SDK/cmdline-tools/bin"
+            yes | "$CT/sdkmanager" --licenses >/dev/null 2>&1 || true
+            "$CT/sdkmanager" --install "ndk;27.2.12479018"
+            NDK_DIR="$SDK/ndk/27.2.12479018"
+          fi
+          echo "NDK=$NDK_DIR" >> "$GITHUB_ENV"
+          echo "使用 NDK: $NDK_DIR"
+
       - name: 构建 libjiguan.so (release)
         run: |
-          export CARGO_TARGET_AARCH64_LINUX_ANDROID_LINKER="$ANDROID_HOME/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android24-clang"
+          set -euo pipefail
+          export CARGO_TARGET_AARCH64_LINUX_ANDROID_LINKER="$NDK/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android24-clang"
           "$CARGO_TARGET_AARCH64_LINUX_ANDROID_LINKER" --version
           cargo build --target aarch64-linux-android --release
 

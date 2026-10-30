@@ -79,6 +79,8 @@ mod tests {
         let tail = v.strip_prefix("jiguan-native/").unwrap_or_default();
         let parts: Vec<&str> = tail.split('.').collect();
         assert_eq!(parts.len(), 3, "版本号必须是 x.y.z: {tail}");
-        assert!(parts.iter().all(|p| !p.is_empty() && p.bytes().all(|b| b.is_ascii_digit())));
+        assert!(parts
+            .iter()
+            .all(|p| !p.is_empty() && p.bytes().all(|b| b.is_ascii_digit())));
     }
 }

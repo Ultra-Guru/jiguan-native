@@ -71,7 +71,9 @@ fn push_token(out: &mut Vec<Option<u8>>, tok: &str) -> Result<(), ScanError> {
             } else if tok.contains('?') {
                 Err(ScanError::InvalidToken(tok.to_string()))
             } else {
-                out.push(Some(hex_byte(tok).ok_or_else(|| ScanError::InvalidToken(tok.to_string()))?));
+                out.push(Some(
+                    hex_byte(tok).ok_or_else(|| ScanError::InvalidToken(tok.to_string()))?,
+                ));
                 Ok(())
             }
         }
@@ -162,7 +164,10 @@ pub fn scan_memory(
     max_results: usize,
 ) -> io::Result<Vec<u64>> {
     if pattern.is_empty() {
-        return Err(Error::new(ErrorKind::InvalidInput, ScanError::EmptyPattern.to_string()));
+        return Err(Error::new(
+            ErrorKind::InvalidInput,
+            ScanError::EmptyPattern.to_string(),
+        ));
     }
     if max_results == 0 {
         return Ok(Vec::new());
@@ -214,8 +219,8 @@ pub fn scan_memory_pattern(
     pattern: &str,
     max_results: usize,
 ) -> io::Result<Vec<u64>> {
-    let parsed = parse_pattern(pattern)
-        .map_err(|e| Error::new(ErrorKind::InvalidInput, e.to_string()))?;
+    let parsed =
+        parse_pattern(pattern).map_err(|e| Error::new(ErrorKind::InvalidInput, e.to_string()))?;
     scan_memory(handle, &parsed, max_results)
 }
 
@@ -247,7 +252,17 @@ mod tests {
         let p = parse_pattern("de ad be ef").expect("小写");
         assert_eq!(p, vec![Some(0xDE), Some(0xAD), Some(0xBE), Some(0xEF)]);
         let p2 = parse_pattern("D E A D 0 1").expect("单字符 token");
-        assert_eq!(p2, vec![Some(0x0D), Some(0x0E), Some(0x0A), Some(0x0D), Some(0x00), Some(0x01)]);
+        assert_eq!(
+            p2,
+            vec![
+                Some(0x0D),
+                Some(0x0E),
+                Some(0x0A),
+                Some(0x0D),
+                Some(0x00),
+                Some(0x01)
+            ]
+        );
     }
 
     #[test]
@@ -256,15 +271,24 @@ mod tests {
         let p = parse_pattern("DEAD??EF").expect("紧凑模式");
         assert_eq!(p, vec![Some(0xDE), Some(0xAD), None, Some(0xEF)]);
         let p2 = parse_pattern("cafe????beef").expect("长紧凑模式");
-        assert_eq!(p2, vec![Some(0xCA), Some(0xFE), None, None, Some(0xBE), Some(0xEF)]);
+        assert_eq!(
+            p2,
+            vec![Some(0xCA), Some(0xFE), None, None, Some(0xBE), Some(0xEF)]
+        );
     }
 
     #[test]
     fn parse_pattern_errors() {
         assert_eq!(parse_pattern(""), Err(ScanError::EmptyPattern));
         assert_eq!(parse_pattern("   \t "), Err(ScanError::EmptyPattern));
-        assert_eq!(parse_pattern("ZZ"), Err(ScanError::InvalidToken("ZZ".into())));
-        assert_eq!(parse_pattern("DE Q1"), Err(ScanError::InvalidToken("Q1".into())));
+        assert_eq!(
+            parse_pattern("ZZ"),
+            Err(ScanError::InvalidToken("ZZ".into()))
+        );
+        assert_eq!(
+            parse_pattern("DE Q1"),
+            Err(ScanError::InvalidToken("Q1".into()))
+        );
         // 孤立 ? / 三个 ? / 奇数长度紧凑串都非法
         assert_eq!(parse_pattern("?"), Err(ScanError::InvalidToken("?".into())));
         assert_eq!(parse_pattern("???"), Err(ScanError::InvalidToken("???".into())));

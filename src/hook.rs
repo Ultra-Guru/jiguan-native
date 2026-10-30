@@ -82,7 +82,10 @@ pub fn flush_icache(addr: usize, len: usize) -> io::Result<()> {
     flush_icache_impl(addr, len)
 }
 
-#[cfg(any(target_os = "android", all(target_os = "linux", target_arch = "aarch64")))]
+#[cfg(any(
+    target_os = "android",
+    all(target_os = "linux", target_arch = "aarch64")
+))]
 fn flush_icache_impl(addr: usize, len: usize) -> io::Result<()> {
     extern "C" {
         /// libgcc / compiler-rt 提供的 icache 同步例程
@@ -96,7 +99,10 @@ fn flush_icache_impl(addr: usize, len: usize) -> io::Result<()> {
     Ok(())
 }
 
-#[cfg(not(any(target_os = "android", all(target_os = "linux", target_arch = "aarch64"))))]
+#[cfg(not(any(
+    target_os = "android",
+    all(target_os = "linux", target_arch = "aarch64")
+)))]
 fn flush_icache_impl(_addr: usize, _len: usize) -> io::Result<()> {
     // x86: icache 自动一致性, 显式刷新为 no-op
     Ok(())

@@ -43,7 +43,10 @@ impl MemHandle {
         if fd < 0 {
             // fd 打不开不代表进程不存在; 只有 /proc/<pid> 消失才判定 NotFound
             if !Path::new(&format!("/proc/{pid}")).exists() {
-                return Err(Error::new(ErrorKind::NotFound, format!("进程 {pid} 不存在")));
+                return Err(Error::new(
+                    ErrorKind::NotFound,
+                    format!("进程 {pid} 不存在"),
+                ));
             }
             debug!("mem: /proc/{pid}/mem 打开失败, 回退 process_vm_* 通道");
         }
@@ -112,9 +115,9 @@ impl MemHandle {
         if max_len == 0 {
             return Ok(String::new());
         }
-        let end = addr.checked_add(max_len as u64).ok_or_else(|| {
-            Error::new(ErrorKind::InvalidInput, "地址区间溢出 u64")
-        })?;
+        let end = addr
+            .checked_add(max_len as u64)
+            .ok_or_else(|| Error::new(ErrorKind::InvalidInput, "地址区间溢出 u64"))?;
         let mut out: Vec<u8> = Vec::new();
         let mut cur = addr;
         while cur < end {

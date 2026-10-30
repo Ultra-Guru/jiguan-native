@@ -87,7 +87,9 @@ pub fn list_processes() -> io::Result<Vec<ProcessInfo>> {
     for entry in fs::read_dir("/proc")?.flatten() {
         let fname = entry.file_name();
         let Some(name) = fname.to_str() else { continue };
-        let Ok(pid) = name.parse::<i32>() else { continue };
+        let Ok(pid) = name.parse::<i32>() else {
+            continue;
+        };
         if pid <= 0 {
             continue;
         }
@@ -274,8 +276,7 @@ mod tests {
     #[test]
     fn scan_target_filter_keeps_rw_and_rx() {
         let regions = parse_maps(SAMPLE);
-        let targets: Vec<&MapsRegion> =
-            regions.iter().filter(|r| r.is_scan_target()).collect();
+        let targets: Vec<&MapsRegion> = regions.iter().filter(|r| r.is_scan_target()).collect();
         // r-- 与 --- 被排除; rw-(3 处) 与 r-x(2 处) 保留
         assert_eq!(targets.len(), 5);
         assert!(targets.iter().all(|r| r.is_writable() || r.is_executable()));
@@ -291,7 +292,10 @@ mod tests {
     fn list_processes_includes_self() {
         let procs = list_processes().expect("枚举 /proc");
         let me = std::process::id() as i32;
-        let found = procs.iter().find(|p| p.pid == me).expect("必须能枚举到自身");
+        let found = procs
+            .iter()
+            .find(|p| p.pid == me)
+            .expect("必须能枚举到自身");
         assert!(!found.name.is_empty(), "自身进程名不应为空");
     }
 }

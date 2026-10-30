@@ -328,12 +328,7 @@ fn si_addr(si: &libc::siginfo_t) -> u64 {
 }
 
 /// 统一 ptrace 调用: 返回值 < 0 折叠为 io::Error。
-fn ptrace_call(
-    req: libc::c_uint,
-    pid: libc::pid_t,
-    addr: usize,
-    data: usize,
-) -> io::Result<()> {
+fn ptrace_call(req: libc::c_uint, pid: libc::pid_t, addr: usize, data: usize) -> io::Result<()> {
     // SAFETY: 参数由调用点保证; addr 携带 NT 编号或 0, data 携带指针或信号
     let rc = unsafe {
         libc::ptrace(
@@ -393,11 +388,7 @@ fn write_dbg_regs(
         ));
     }
     let mut local = *regs;
-    local.slots[slot] = HwBpSlot {
-        addr,
-        ctrl,
-        pad: 0,
-    };
+    local.slots[slot] = HwBpSlot { addr, ctrl, pad: 0 };
     let mut iov = libc::iovec {
         // SAFETY: local 为本栈上合法结构, 长度精确对齐内核实长
         iov_base: &mut local as *mut HwBpRegs as *mut libc::c_void,

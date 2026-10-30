@@ -114,7 +114,9 @@ pub extern "system" fn Java_com_apex_agent_platform_jiguan_native_JiguanNative_r
     address: jlong,
     size: jint,
 ) -> jbyteArray {
-    match catch_unwind(AssertUnwindSafe(|| read_memory(&mut env, handle, address, size))) {
+    match catch_unwind(AssertUnwindSafe(|| {
+        read_memory(&mut env, handle, address, size)
+    })) {
         Ok(arr) => arr,
         Err(p) => {
             log_panic(&mut env, "readMemory", p);
@@ -153,7 +155,9 @@ pub extern "system" fn Java_com_apex_agent_platform_jiguan_native_JiguanNative_w
     address: jlong,
     data: jbyteArray,
 ) -> jboolean {
-    match catch_unwind(AssertUnwindSafe(|| write_memory(&mut env, handle, address, data))) {
+    match catch_unwind(AssertUnwindSafe(|| {
+        write_memory(&mut env, handle, address, data)
+    })) {
         Ok(ok) => ok,
         Err(p) => {
             log_panic(&mut env, "writeMemory", p);
@@ -349,7 +353,9 @@ pub extern "system" fn Java_com_apex_agent_platform_jiguan_native_JiguanNative_r
     address: jlong,
     max_len: jint,
 ) -> jstring {
-    match catch_unwind(AssertUnwindSafe(|| read_cstring(&mut env, handle, address, max_len))) {
+    match catch_unwind(AssertUnwindSafe(|| {
+        read_cstring(&mut env, handle, address, max_len)
+    })) {
         Ok(s) => s,
         Err(p) => {
             log_panic(&mut env, "readCString", p);
@@ -404,7 +410,9 @@ pub extern "system" fn Java_com_apex_agent_platform_jiguan_native_JiguanNative_n
     mut env: JNIEnv,
     _class: JClass,
 ) -> jstring {
-    match catch_unwind(AssertUnwindSafe(|| new_string_or_null(&mut env, native_version()))) {
+    match catch_unwind(AssertUnwindSafe(|| {
+        new_string_or_null(&mut env, native_version())
+    })) {
         Ok(s) => s,
         Err(p) => {
             log_panic(&mut env, "nativeVersion", p);
